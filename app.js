@@ -8,13 +8,16 @@ require('dotenv/config');;
 const api = process.env.API_URL;
 const db_connector = process.env.Db_connection;
 const productRouter = require('./routes/product');
+const categoryRouter = require('./routes/category');
 
 //middleware
-app.use(cors);
+app.use(cors());
 app.options('*', cors());
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
 app.use(`${api}/products`, productRouter);
+app.use(`${api}/category`, categoryRouter);
+
 
 //dataBase
 mongoose.connect(db_connector, { dbName: 'Satyam' })
