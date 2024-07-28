@@ -1,3 +1,4 @@
+const { type } = require('express/lib/response');
 const mongoose = require('mongoose');
 const productSchema = mongoose.Schema({
     name: {
@@ -5,32 +6,57 @@ const productSchema = mongoose.Schema({
         required: true
 
     },
-    description: String,
-    richDescription: String,
+    description: {
+        type: String,
+        default: '',
+        required: true,
+    },
+    richDescription: {
+        type: String,
+        default: '',
+    },
     image: {
         type: String,
         reuired: true
     },
     images: [{
-        type: String
+        type: String,
+        default:'',
     }],
     brand: {
         type: String,
-        required: true
+        required: true,
     },
     price: {
         type: Number,
         reuired: true
         
     },
+    category:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required:true,
+    }
+    ,
     rating: {
         type: Number
     },
-    isFeatured: Boolean,
-    dateCreated: Date,
+    numReviews: {
+        type:Number,
+    },
+    isFeatured: {
+        type: Boolean,
+        default:false,
+    } ,
+    dateCreated: {
+        type: Date,
+        default: Date.now(),
+    },
     stockCount: {
         type: Number,
-        required: true
+        required: true,
+        min: 0,
+        max:255,
     },
  
 });
