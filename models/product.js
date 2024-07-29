@@ -17,7 +17,7 @@ const productSchema = mongoose.Schema({
     },
     image: {
         type: String,
-        reuired: true
+        required: true
     },
     images: [{
         type: String,
@@ -29,7 +29,7 @@ const productSchema = mongoose.Schema({
     },
     price: {
         type: Number,
-        reuired: true
+        required: true
         
     },
     category:{
@@ -50,7 +50,7 @@ const productSchema = mongoose.Schema({
     } ,
     dateCreated: {
         type: Date,
-        default: Date.now(),
+        default: Date.now,
     },
     stockCount: {
         type: Number,

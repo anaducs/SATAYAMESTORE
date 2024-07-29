@@ -18,7 +18,6 @@ app.use(morgan('tiny'));
 app.use(`${api}/products`, productRouter);
 app.use(`${api}/category`, categoryRouter);
 
-
 //dataBase
 mongoose.connect(db_connector, { dbName: 'Satyam' })
     .then(() => {
