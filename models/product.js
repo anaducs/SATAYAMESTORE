@@ -1,6 +1,6 @@
 const { type } = require('express/lib/response');
 const mongoose = require('mongoose');
-const productSchema = mongoose.Schema({
+const productSchema =new  mongoose.Schema({
     name: {
         type: String,
         required: true
@@ -23,7 +23,7 @@ const productSchema = mongoose.Schema({
         type: String,
         default:'',
     }],
-    brand: {
+    brand:{
         type: String,
         required: true,
     },
@@ -60,5 +60,10 @@ const productSchema = mongoose.Schema({
     },
  
 });
-
+productSchema.virtual('id').get(function() {
+    return this._id.toHexString();
+});
+productSchema.set('toJSON', {
+    virtuals: true
+});
 exports.Product = mongoose.model('Product',productSchema)
