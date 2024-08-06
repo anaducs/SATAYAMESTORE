@@ -44,25 +44,25 @@ router.post('/', async (req, res,) => {
     const session = await moongose.startSession();
     session.startTransaction();
     let abortTransaction = false;
-    try { 
-            let orderItems = await Promise.all(req.body.orderItem.map(async orderItem => {
+    try {
+        let orderItems = await Promise.all(req.body.orderItem.map(async orderItem => {
             let newOrderItems = new OrderItem({
                 product: orderItem.product,
                 quantity: orderItem.quantity
             });
             
-                let stock = await Product.findById(orderItem.product);
-                if (!stock) {
-                    abortTransaction = true;
-                    return res.status(404).json({ message: `product ${orderItem.product} not found` });
+            let stock = await Product.findById(orderItem.product);
+            if (!stock) {
+                abortTransaction = true;
+                return res.status(404).json({ message: `product ${orderItem.product} not found` });
                     
-                }
-                if (orderItem.quantity > stock.stockCount) {
-                    abortTransaction = true;
-                    return res.status(404).json({ message: `${stock.stockCount} stock left` });
-                }
+            }
+            if (orderItem.quantity > stock.stockCount) {
+                abortTransaction = true;
+                return res.status(404).json({ message: `${stock.stockCount} stock left` });
+            }
                 
-                if (!newOrderItems) {
+            if (!newOrderItems) {
                 abortTransaction = true;
                 return res.status(404).json({ message: 'failed to add item in cart' });
             }
@@ -74,10 +74,9 @@ router.post('/', async (req, res,) => {
             const totalPrice = priceOfOrder.product.price * priceOfOrder.quantity;
             return totalPrice;
         }));
-         if (abortTransaction) {
-             await session.abortTransaction();
-             session.endSession();
-             return
+        if (abortTransaction) {
+            await session.abortTransaction();
+            return res.status(404).json({ message: 'transaction aborted' });
         }
 
         const totalPrice = totaPrice.reduce((a, b) => a + b, 0);
@@ -95,33 +94,39 @@ router.post('/', async (req, res,) => {
             totalPrice: totalPrice,
             user: userId,
             dateOrdered: req.body.dateOrdered,
-            paymentMethod:req.body.paymentMethod,
-            paymentStatus:req.body.paymentMethod==='COD'?'Pending':'Paid',
+            paymentMethod: req.body.paymentMethod,
+            paymentStatus: req.body.paymentMethod === 'COD' ? 'Pending' : 'Paid',
             
         });
         order = await order.save({ session });
-         if (!order) {
-             abortTransaction = true;
+        if (!order) {
+            abortTransaction = true;
             return res.status(404).json({ message: 'order failed' });
-        }     
+        }
         await session.commitTransaction();
+       
         res.status(200).json(order)
+        //update stock
+        await Promise.all(orderItems.map(async productid => {
+            await Product.findByIdAndUpdate(productid.product, { $inc: { stockCount: -productid.quantity } }, { session });
+        }));
+        
           
     }
-    catch (err)
-    {
-         if (!abortTransaction) {
+    catch (err) {
+        if (!abortTransaction) {
             await session.abortTransaction();
         }
-        await session.endSession();
-        res.status(500).json(err.message);
-           
+         if (!res.headersSent) { // Check if headers are already sent
+            res.status(500).json({ message: err.message });
+        }
+                   
     } finally {
        
         session.endSession();
     }
      
-})
+});
 router.put('/:id', async (req, res) => {
     try {
         const order = await Orders.findByIdAndUpdate(req.params.id, {
