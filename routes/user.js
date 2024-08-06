@@ -3,7 +3,7 @@ const router = express.Router();
 const { Users } = require('../models/user')
 const bcrypt = require('bcryptjs');
 const webToken = require('jsonwebtoken');
-const { token } = require('morgan');
+
 require('dotenv/config');
 const secret = process.env.Secret;
 
@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
         if (!userList) {
             return res.status(404).json({ success: false, message: 'no user found' });
         }
-        res.status(200).json({ userList });
+        res.status(200).json(userList );
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
@@ -29,18 +29,18 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 });
-router.put('/:id', async (req, res) => {
+router.put('/:uid', async (req, res) => {
     try {
-        const user = await Users.findByIdAndUpdate(req.params.id,
+        const user = await Users.findByIdAndUpdate(req.params.uid,
             {
                 name: req.body.name,
                 email: req.body.email,
-                passwordHash: bcrypt.hashSync(req.body.password),
+                passwordHash:bcrypt.hashSync(req.body.password,10),
                 city: req.body.city,
                 pincode: req.body.pincode,
                 country: req.body.country,
                 phone: req.body.phone,
-                isAdmin: req.body.isAdmin,
+                isAdmin:req.body.isAdmin,
                 apartment: req.body.apartment,
                 street: req.body.street,
             },
@@ -49,10 +49,9 @@ router.put('/:id', async (req, res) => {
         if (!user) {
             return res.status(404);
         }
-        res.status(200).json({ user });
+        res.status(200).json(user);
     
     }
-
     catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
@@ -103,16 +102,53 @@ router.post('/login', async (req, res) => {
         if (user && bcrypt.compareSync(req.body.password, user.passwordHash)) {
             const token = webToken.sign({
                 userId: user.id,
-                
+                isAdmin: user.isAdmin,
+               
             },
-                secret,
+            secret,
                 { expiresIn: '1w' });
-            return res.status(200).json({ success: true, user:user.email,token:token });
+            return res.status(200).json({ success: true, user: user.email, token: token });
+           
         }
         res.status(404).json({ success: false, message: 'Invalid password/username' });
         
     } catch (err) {
          res.status(500).json({ success: false, message: err.message });
+    }
+});
+router.post('/register', async (req, res) => {
+    try {
+        let user = new Users({
+            name: req.body.name,
+            email: req.body.email,
+            passwordHash:bcrypt.hashSync(req.body.password,10),
+            city: req.body.city,
+            pincode: req.body.pincode,
+            country: req.body.country,
+            phone: req.body.phone,
+            isAdmin: req.body.isAdmin,
+            apartment: req.body.apartment,
+            street: req.body.street,
+
+        });
+        user = await user.save();
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User creation failed' });
+        }
+        res.status(200).json({ user });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+router.get('/get/count', async (req, res) => {
+    try {
+        const userCount = await Users.countDocuments;
+        if (!userCount) {
+            return res.status(404).json({ success: false, message: 'no userfound' });
+        }
+        res.status(200).json({ success: true, userCount });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
     }
 });
     module.exports = router;

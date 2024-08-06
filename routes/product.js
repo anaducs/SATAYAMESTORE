@@ -23,7 +23,7 @@ router.get(`/`, async (req, res) => {
 });
 router.get(`/:id`, async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id).populate('category',' -_id');
+        const product = await Product.findById(req.params.id).populate('category');
         if (!product) {
             return res.status(404).json({ success: false, message: 'No Products to show' });
         }
@@ -36,7 +36,7 @@ router.get(`/:id`, async (req, res) => {
 
 
 
-router.post(`/`, (req, res) => {
+router.post(`/admin`, (req, res) => {
     const product = new Product({
             name: req.body.name,
             description: req.body.description,
@@ -63,7 +63,7 @@ router.post(`/`, (req, res) => {
 }
 );
 
-router.delete('/:pid',async(req, res) => {
+router.delete('/admin/:pid',async(req, res) => {
     try {
         await Product.findByIdAndDelete(req.params.pid).then(product => {
             if (product) {
@@ -78,7 +78,7 @@ router.delete('/:pid',async(req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/admin/:id', async (req, res) => {
     try {
         const product = await Product.findByIdAndUpdate(req.params.id, {
             name: req.body.name,
@@ -107,7 +107,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-router.get(`/get/count`, async (req, res) => {
+router.get(`/admin/get/count`, async (req, res) => {
     try {
         const productCount = await Product.countDocuments();
         if (!productCount) {
@@ -120,7 +120,7 @@ router.get(`/get/count`, async (req, res) => {
     }
 });
 
-router.get(`/get/featured/:count`, async (req, res) => {
+router.get(`/admin/get/featured/:count`, async (req, res) => {
     try {
         const count = req.params.count ? req.params.count : 0;
         const featuredProduct = await Product.find({ isFeatured: true }).limit(+count);
@@ -134,7 +134,7 @@ router.get(`/get/featured/:count`, async (req, res) => {
     }
 
 });
-router.get(`/get/featured/`, async (req, res) => {
+router.get(`/admin/get/featured/`, async (req, res) => {
     try {
         const featuredProduct = await Product.find({ isFeatured: true });
 

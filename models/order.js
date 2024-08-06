@@ -34,6 +34,7 @@ const orderSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
+        default:'Pending',
     },
     totalPrice: {
         type: Number,
@@ -41,12 +42,23 @@ const orderSchema = new mongoose.Schema({
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Users',
         required: true,
     },
     dateOrdered: {
         type: Date,
         default: Date.now,
+    },
+    paymentMethod: {
+        type: String,
+        enum: ['COD', 'Online'],
+        required:true,
+    },
+    paymentStatus: {
+        type: String,
+        enum: ['Pending', 'Paid'],
+        required:true,
+        
     }
 });
 orderSchema.virtual('id').get(function () {
